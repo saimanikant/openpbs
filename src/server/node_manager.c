@@ -3617,7 +3617,7 @@ update2_to_vnode(vnal_t *pvnal, int new, mominfo_t *pmom, int *madenew, int from
 							/* changes survive */
 							/* server restart */
 							prs->rs_value.at_flags &= ~ATR_VFLAG_DEFLT;
-							post_attr_set(&prs->rs_value);
+							prs->rs_value.at_flags |= ATR_VFLAG_MODCACHE;
 							if (psrp->vna_val[0] != '\0')
 								prs->rs_value.at_flags |= (ATR_VFLAG_SET|ATR_VFLAG_MODIFY);
 						} else
