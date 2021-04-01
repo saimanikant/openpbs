@@ -3048,6 +3048,18 @@ if %s e.job.in_ms_mom():
         # Check vmem only if system has swap control
         if self.swapctl == 'true':
             self.assertNotEqual(vmem1, vmem2)
+        attribs = self.server.status(JOB, id=jid)
+        host, epath = attribs[0]['Error_Path'].split(':', 1)
+        host, opath = attribs[0]['Output_Path'].split(':', 1)
+        self.server.log_match(jid + ";Exit_status=0", interval=4)
+        ret = self.du.cat(hostname=self.mom.shortname, filename=epath,
+                          runas='root')
+        self.logger.info('=== ERR: %s' % ret['out'])
+        ret = self.du.cat(hostname=self.mom.shortname, filename=opath,
+                          runas='root')
+        self.logger.info('=== OUT: %s' % ret['out'])
+        self.server.log_match(jid + ";Exit_status=0", interval=4, max_attempts=20)
+        
 
     def test_cgroup_reserve_mem(self):
         """
