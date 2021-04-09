@@ -464,6 +464,11 @@ get_more_licenses(struct work_task *ptask)
 					clear_node_lic_attrs(pbsndlist[i], 0);
 				license_counts.licenses_used = 0;
 			}
+			sprintf(log_buffer,
+                		"===== licensing_control.licenses_total_needed = %ld, lic_count = %ld, licensing_control.licenses_checked_out = %ld ======",
+                		licensing_control.licenses_total_needed, lic_count, licensing_control.licenses_checked_out);
+			log_event(PBSEVENT_ADMIN, PBS_EVENTCLASS_SERVER,
+                  	  	  LOG_NOTICE, msg_daemonname, log_buffer);
 			status = get_licenses(lic_count);
 			if (status == 0)
 				license_nodes();
@@ -514,6 +519,11 @@ license_one_node(pbsnode *pnode)
 			} else {
 				add_to_unlicensed_node_list(pnode);
 				if (is_nattr_set(pnode, ND_ATR_LicenseInfo)) {
+					sprintf(log_buffer,
+                				"===== Incrementing licensing_control.licenses_total_needed = %ld by %ld ======",
+                				licensing_control.licenses_total_needed, get_nattr_long(pnode, ND_ATR_LicenseInfo));
+					log_event(PBSEVENT_ADMIN, PBS_EVENTCLASS_SERVER,
+                  	  	  		  LOG_NOTICE, msg_daemonname, log_buffer);
 					licensing_control.licenses_total_needed += get_nattr_long(pnode, ND_ATR_LicenseInfo);
 				}
 				if (get_more_licenses_task)
@@ -653,10 +663,20 @@ init_licensing(struct work_task *ptask)
 	for (i = 0; i < svr_totnodes; i++) {
 	 	clear_node_lic_attrs(pbsndlist[i], 0);
 		if (is_nattr_set(pbsndlist[i], ND_ATR_LicenseInfo)) {
+			sprintf(log_buffer,
+                		"===== Incrementing licensing_control.licenses_total_needed = %ld by %ld ======",
+                		licensing_control.licenses_total_needed, get_nattr_long(pbsndlist[i], ND_ATR_LicenseInfo));
+			log_event(PBSEVENT_ADMIN, PBS_EVENTCLASS_SERVER,
+                  		  LOG_NOTICE, msg_daemonname, log_buffer);
 			licensing_control.licenses_total_needed += get_nattr_long(pbsndlist[i], ND_ATR_LicenseInfo);
 		} else {
 			if (pbsndlist[i]->nd_lic_info != NULL) {
 				set_node_lic_info_attr(pbsndlist[i]);
+				sprintf(log_buffer,
+                			"===== Incrementing licensing_control.licenses_total_needed = %ld by %ld ======",
+     		           		licensing_control.licenses_total_needed, get_nattr_long(pbsndlist[i], ND_ATR_LicenseInfo));
+				log_event(PBSEVENT_ADMIN, PBS_EVENTCLASS_SERVER,
+                	  		  LOG_NOTICE, msg_daemonname, log_buffer);
 				licensing_control.licenses_total_needed += get_nattr_long(pbsndlist[i], ND_ATR_LicenseInfo);
 			}
 		}
@@ -666,7 +686,11 @@ init_licensing(struct work_task *ptask)
 	/* Determine how many licenses we can check out */
 	license_counts.licenses_global = count;
 	lic_count = calc_licenses_allowed();
-
+	sprintf(log_buffer,
+                "===== licensing_control.licenses_total_needed = %ld, lic_count = %ld ======",
+                licensing_control.licenses_total_needed, lic_count);
+	log_event(PBSEVENT_ADMIN, PBS_EVENTCLASS_SERVER,
+                  LOG_NOTICE, msg_daemonname, log_buffer);
 	if (lic_count > 0) {
 		int status;
 		status = get_licenses(lic_count);
